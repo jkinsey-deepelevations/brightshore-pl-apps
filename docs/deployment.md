@@ -4,6 +4,8 @@ BrightShore Mortgage is a separate app from Essex Mortgage and must keep its own
 
 - iOS bundle identifier: `com.brightshoremortgage.app`
 - Android package: `com.brightshoremortgage.app`
+- Expo slug: `brightshore-servicing`
+- Expo/EAS project ID: `5e9d4eee-d490-453e-b619-17643137965f`
 - App version: `1.0`
 - iOS build number: `1`
 - Android version code: `1`
@@ -19,7 +21,7 @@ Before the release workflow can run, add this repository secret in GitHub:
 
 - `EXPO_TOKEN`: an Expo access token for the Expo account that owns the app.
 
-Run one interactive EAS production build per platform before relying on CI. This lets EAS initialize the project and collect/create credentials:
+This repository is already linked to the existing Expo/EAS project through `expo.extra.eas.projectId` in `app.json`. Run one interactive EAS production build per platform before relying on CI. This lets EAS confirm the project and collect/create credentials:
 
 ```sh
 npx eas-cli@latest login
