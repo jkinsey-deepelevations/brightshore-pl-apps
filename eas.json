@@ -1,0 +1,16 @@
+{
+  "cli": {
+    "version": ">= 18.9.1"
+  },
+  "build": {
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+name: EAS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      submit:
+        description: Submit the finished build to the stores
+        required: true
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: eas-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS build
+    runs-on: ubuntu-latest
+
+    env:
+      PLATFORM: ${{ github.event.inputs.platform || 'all' }}
+      SUBMIT: ${{ github.event.inputs.submit || 'false' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Trigger EAS build
+        if: env.SUBMIT != 'true'
+        run: eas build --platform "$PLATFORM" --profile production --non-interactive --no-wait
+
+      - name: Build and submit with EAS
+        if: env.SUBMIT == 'true'
+        run: eas build --platform "$PLATFORM" --profile production --non-interactive --auto-submit
