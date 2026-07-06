@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PLATFORM: ${{ github.event.inputs.platform || 'all' }}
+      PLATFORM: ${{ github.event_name == 'push' && 'android' || github.event.inputs.platform || 'all' }}
       SUBMIT: ${{ github.event.inputs.submit || 'false' }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

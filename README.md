@@ -15,7 +15,7 @@ BrightShore Mortgage is a separate app from Essex Mortgage and must keep its own
 The repository includes two GitHub workflows:
 
 - `.github/workflows/ci.yml` runs dependency install, TypeScript, and Expo config validation on pull requests and pushes to `main`.
-- `.github/workflows/eas-release.yml` triggers production EAS builds on pushes to `main` and supports a manual `workflow_dispatch` run with optional store submission.
+- `.github/workflows/eas-release.yml` triggers Android production EAS builds on pushes to `main` and supports a manual `workflow_dispatch` run for Android, iOS, or both platforms with optional store submission.
 
 Before the release workflow can run, add this repository secret in GitHub:
 
@@ -35,7 +35,7 @@ Make sure it is an Actions repository secret, not a Codespaces secret, Dependabo
 
 This repository is already linked to the existing Expo/EAS project through `expo.extra.eas.projectId` in `app.json`.
 
-Run one interactive EAS production build per platform before relying on CI. This lets EAS confirm the project and collect/create credentials:
+Run one interactive EAS production build per platform before relying on CI for that platform. This lets EAS confirm the project and collect/create credentials:
 
 ```sh
 npx eas-cli@latest login
@@ -43,6 +43,10 @@ npx eas-cli@latest project:info
 npx eas-cli@latest build --platform android --profile production
 npx eas-cli@latest build --platform ios --profile production
 ```
+
+The first iOS production build must be interactive because EAS needs to create or select the Apple Distribution Certificate and provisioning profile. After that credential setup exists on EAS, GitHub Actions can run iOS builds non-interactively.
+
+This project uses EAS remote app versioning through `cli.appVersionSource: "remote"` in `eas.json`, so EAS manages developer-facing build numbers (`android.versionCode` and `ios.buildNumber`) instead of relying on CI to commit version bumps back to Git.
 
 For Android submissions, Google Play requires the app to be created in Play Console and the first upload may need to be manual before API submission works. For iOS submissions, the App Store Connect app record must exist first.
 
@@ -140,4 +144,4 @@ git push
 
 Pushing to `main` triggers the EAS build workflow when `EXPO_TOKEN` is configured. Manual release builds can be started from GitHub Actions > EAS Release.
 
-Use the manual `submit` option only after App Store Connect, Google Play, EAS credentials, and store submission credentials are ready.
+Use the manual `ios` or `all` platform options only after the first interactive iOS EAS build has completed successfully. Use the manual `submit` option only after App Store Connect, Google Play, EAS credentials, and store submission credentials are ready.
