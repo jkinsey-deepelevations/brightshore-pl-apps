@@ -31,6 +31,8 @@ Create the token from the Expo dashboard:
 6. In GitHub, open this repo, then Settings > Secrets and variables > Actions > New repository secret.
 7. Name it `EXPO_TOKEN` and paste the Expo token as the value.
 
+Make sure it is an Actions repository secret, not a Codespaces secret, Dependabot secret, or environment-only secret. The EAS Release workflow checks for this secret before starting the build.
+
 This repository is already linked to the existing Expo/EAS project through `expo.extra.eas.projectId` in `app.json`.
 
 Run one interactive EAS production build per platform before relying on CI. This lets EAS confirm the project and collect/create credentials:
