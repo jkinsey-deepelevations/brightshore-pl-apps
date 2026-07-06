@@ -35,6 +35,10 @@ Make sure it is an Actions repository secret, not a Codespaces secret, Dependabo
 
 This repository is already linked to the existing Expo/EAS project through `expo.extra.eas.projectId` in `app.json`.
 
+The native `ios/` and `android/` projects are intentionally checked in for Xcode Cloud and native signing workflows. Because this is not a pure CNG-managed repo, `npx expo-doctor` will warn that some app config fields are not automatically synced into native projects. When changing identifiers, icons, splash assets, permissions, or architecture flags, update both `app.json` and the matching native files.
+
+This app currently runs Expo SDK 54 with React Native's legacy architecture (`newArchEnabled: false`). That keeps the authenticated cookie/document-viewer native packages on the safer build path. Expo SDK 54 is the last SDK where this can be disabled, so migrate `@react-native-cookies/cookies` and `react-native-file-viewer` before upgrading to SDK 55 or later.
+
 Run one interactive EAS production build per platform before relying on CI for that platform. This lets EAS confirm the project and collect/create credentials:
 
 ```sh
@@ -145,3 +149,24 @@ git push
 Pushing to `main` triggers the EAS build workflow when `EXPO_TOKEN` is configured. Manual release builds can be started from GitHub Actions > EAS Release.
 
 Use the manual `ios` or `all` platform options only after the first interactive iOS EAS build has completed successfully. Use the manual `submit` option only after App Store Connect, Google Play, EAS credentials, and store submission credentials are ready.
+
+## App Store Screenshots
+
+Generate the BrightShore preview screenshots with:
+
+```sh
+npm run screenshots:app-store
+```
+
+Screenshots are written to `dist/app-store-screenshots` for iPhone 6.9-inch and iPad 12.9-inch sizes. The generator captures live BrightShore/eStatus pages and overlays the app chrome used for store previews.
+
+Local eStatus credentials can live in an ignored `.env` file:
+
+```sh
+BRIGHTSHORE_ESTATUS_USERNAME=...
+BRIGHTSHORE_ESTATUS_PASSWORD=...
+```
+
+The default run captures public live-site pages. Use `BRIGHTSHORE_SCREENSHOT_MODE=auth` to regenerate only authenticated eStatus screenshots, or `BRIGHTSHORE_SCREENSHOT_MODE=all` to regenerate both public and authenticated sets. Process environment variables override values from `.env`.
+
+Do not commit eStatus credentials. `.env` is ignored by Git and EAS.

@@ -2,6 +2,9 @@ __MACOSX/
 dist/
 node_modules
 .expo/
+.DS_Store
+.env
+.env.*
 *.log
 android-emulator-*.png
 android-phone-*.png

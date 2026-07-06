@@ -5,6 +5,60 @@ const { chromium } = require("playwright");
 const root = path.resolve(__dirname, "..");
 const outRoot = path.join(root, "dist", "app-store-screenshots");
 
+function loadDotEnv(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  for (const rawLine of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) {
+      continue;
+    }
+
+    const [, key, rawValue] = match;
+    if (process.env[key] !== undefined) {
+      continue;
+    }
+
+    let value = rawValue.trim();
+    const quote = value[0];
+    if ((quote === "\"" || quote === "'") && value.endsWith(quote)) {
+      value = value.slice(1, -1);
+      if (quote === "\"") {
+        value = value
+          .replace(/\\n/g, "\n")
+          .replace(/\\r/g, "\r")
+          .replace(/\\t/g, "\t")
+          .replace(/\\"/g, "\"")
+          .replace(/\\\\/g, "\\");
+      }
+    } else {
+      value = value.replace(/\s+#.*$/, "");
+    }
+
+    process.env[key] = value;
+  }
+}
+
+loadDotEnv(path.join(root, ".env"));
+
+const eStatusCredentials = {
+  username:
+    process.env.BRIGHTSHORE_ESTATUS_USERNAME || process.env.ESTATUS_USERNAME || "",
+  password:
+    process.env.BRIGHTSHORE_ESTATUS_PASSWORD || process.env.ESTATUS_PASSWORD || "",
+};
+const hasEStatusCredentials = Boolean(
+  eStatusCredentials.username && eStatusCredentials.password
+);
+const screenshotMode = process.env.BRIGHTSHORE_SCREENSHOT_MODE || "public";
+
 const brand = {
   baseUrl: "https://brightshoremortgage.com",
   aboutSlug: "behind-every-experience",
@@ -31,90 +85,99 @@ const devices = [
   },
 ];
 
-const pages = [
+const publicPages = [
   {
     name: "01-home",
     title: "Home",
+    tabTitle: "Home",
     url: brand.baseUrl,
-    showcase: {
-      headline: "Helping Clients Retain More Than Loans",
-      body: "Manage your mortgage from the BrightShore Mortgage app.",
-      action: "Buy a Home",
-    },
   },
   {
     name: "02-payment",
     title: "Payment",
+    tabTitle: "Payment",
     url: `${brand.baseUrl}/manage#QuickAction`,
-    showcase: {
-      headline: "Make a Payment",
-      body: "Quick access to payment tools and account services.",
-      action: "Payment Center",
-    },
   },
-  { name: "03-login", title: "Login", url: brand.eStatusHomeUrl },
+  {
+    name: "03-login",
+    title: "Login",
+    tabTitle: "Login",
+    url: brand.eStatusHomeUrl,
+  },
   {
     name: "04-faq",
     title: "FAQ",
+    tabTitle: "FAQ",
     url: brand.faqUrl,
-    showcase: {
-      headline: "Get Answers Fast",
-      body: "Find support for payments, escrow, assistance, and account access.",
-      action: "FAQ",
-    },
   },
   {
     name: "05-about",
     title: "About",
     url: `${brand.baseUrl}/${brand.aboutSlug}`,
-    showcase: {
-      headline: "Behind Every Experience",
-      body: "Digital tools and servicing expertise for every borrower interaction.",
-      action: "Learn More",
-    },
   },
   {
     name: "06-hardship",
     title: "Hardship",
     url: `${brand.baseUrl}/mortgage-assistance`,
-    showcase: {
-      headline: "Mortgage Assistance",
-      body: "Support options when you need help with your loan.",
-      action: "View Options",
-    },
   },
   {
     name: "07-contact",
     title: "Contact",
     url: brand.chatUrl,
-    showcase: {
-      headline: "Contact BrightShore",
-      body: "Reach the BrightShore team directly from the app.",
-      action: "Contact Us",
-    },
   },
   {
     name: "08-refinance",
     title: "Refinance",
     url: `${brand.baseUrl}/refinancing-your-loan`,
-    showcase: {
-      headline: "Refinance Options",
-      body: "Explore mortgage solutions for your next chapter.",
-      action: "Refinance",
-    },
   },
   {
     name: "09-menu",
     title: "Menu",
+    tabTitle: "Home",
     url: brand.baseUrl,
     drawer: true,
-    showcase: {
-      headline: "Everything in Reach",
-      body: "Navigate home, account support, contact, and refinance tools.",
-      action: "Open Menu",
-    },
   },
 ];
+
+const authenticatedPages = [
+  {
+    name: "10-dashboard",
+    title: "Dashboard",
+    tabTitle: "Login",
+    url: brand.eStatusHomeUrl,
+    requiresAuth: true,
+  },
+  {
+    name: "11-payment-history",
+    title: "Payment",
+    tabTitle: "Payment",
+    url: `${brand.eStatusHomeUrl}/History/Payment`,
+    requiresAuth: true,
+  },
+  {
+    name: "12-documents",
+    title: "Documents",
+    tabTitle: "Login",
+    url: `${brand.eStatusHomeUrl}/Documents`,
+    requiresAuth: true,
+  },
+  {
+    name: "13-account-info",
+    title: "Account",
+    tabTitle: "Login",
+    url: `${brand.eStatusHomeUrl}/AccountInformation`,
+    requiresAuth: true,
+  },
+];
+
+const pages =
+  screenshotMode === "auth"
+    ? authenticatedPages
+    : screenshotMode === "public"
+      ? publicPages
+      : hasEStatusCredentials
+        ? [...publicPages, ...authenticatedPages]
+        : publicPages;
 
 function getPngSize(filePath) {
   const buffer = fs.readFileSync(filePath);
@@ -134,31 +197,55 @@ async function waitForUsefulPaint(page) {
   await page.waitForTimeout(2500);
 }
 
-async function getShowcaseImage(page) {
-  return page
-    .evaluate(() => {
-      const images = Array.from(document.images)
-        .map((image) => ({
-          src: image.currentSrc || image.src,
-          area: (image.naturalWidth || 0) * (image.naturalHeight || 0),
-        }))
-        .filter((image) => image.src && image.area > 20000);
+async function loginToEStatus(page) {
+  await page.goto(`${brand.eStatusHomeUrl}/User/Login`, {
+    waitUntil: "domcontentloaded",
+    timeout: 45000,
+  });
+  await waitForUsefulPaint(page);
 
-      const preferred =
-        images.find((image) => /main|hero|home|quick|assistance|refinance|story/i.test(image.src)) ||
-        images[0];
+  await page.locator("#user_id, input[name='user_id']").first().fill(eStatusCredentials.username);
+  await page.locator("#password, input[name='password']").first().fill(eStatusCredentials.password);
 
-      return preferred?.src || "";
-    })
-    .catch(() => "");
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null),
+    page.locator("#submitButton, input[type='submit']").first().click(),
+  ]);
+  await waitForUsefulPaint(page);
+
+  const loginResult = await page.evaluate(() => {
+    const errorText = Array.from(
+      document.querySelectorAll(
+        ".field-validation-error, .validation-summary-errors, .text-danger, .alert, .error"
+      )
+    )
+      .map((element) => element.textContent || "")
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return {
+      url: window.location.href,
+      hasPasswordField: Boolean(document.querySelector("input[type='password']")),
+      errorText,
+    };
+  });
+
+  if (
+    loginResult.hasPasswordField ||
+    /login data is incorrect|invalid|try again/i.test(loginResult.errorText)
+  ) {
+    throw new Error(
+      `eStatus login did not complete${loginResult.errorText ? `: ${loginResult.errorText}` : ""}`
+    );
+  }
 }
 
-async function installAppChrome(page, title, drawer, showcase, showcaseImage) {
+async function installAppChrome(page, tabTitle, drawer) {
   await page.evaluate(
-    ({ primary, title, drawer, showcase, showcaseImage }) => {
+    ({ primary, tabTitle, drawer }) => {
       const oldChrome = document.getElementById("brightshore-native-chrome");
       oldChrome?.remove();
-      document.getElementById("brightshore-showcase")?.remove();
       if (window.Cookiebot && typeof window.Cookiebot.hide === "function") {
         window.Cookiebot.hide();
       }
@@ -168,23 +255,6 @@ async function installAppChrome(page, title, drawer, showcase, showcaseImage) {
       document.body.style.margin = "0";
       document.body.style.maxWidth = "100%";
       document.body.style.overflowX = "hidden";
-
-      if (showcase) {
-        document.documentElement.classList.add("brightshore-showcase-active");
-        const showcaseElement = document.createElement("main");
-        showcaseElement.id = "brightshore-showcase";
-        showcaseElement.innerHTML = `
-          <section>
-            <p class="brightshore-kicker">BrightShore Mortgage</p>
-            <h1>${showcase.headline}</h1>
-            <p class="brightshore-copy">${showcase.body}</p>
-            <div class="brightshore-action">${showcase.action}</div>
-          </section>
-        `;
-        document.body.appendChild(showcaseElement);
-      } else {
-        document.documentElement.classList.remove("brightshore-showcase-active");
-      }
 
       const shell = document.createElement("div");
       shell.id = "brightshore-native-chrome";
@@ -219,7 +289,7 @@ async function installAppChrome(page, title, drawer, showcase, showcaseImage) {
           ]
             .map(
               ([icon, label]) =>
-                `<div class="brightshore-tab ${label === title ? "active" : ""}"><span>${icon}</span><strong>${label}</strong></div>`
+                `<div class="brightshore-tab ${label === tabTitle ? "active" : ""}"><span>${icon}</span><strong>${label}</strong></div>`
             )
             .join("")}
         </div>
@@ -245,71 +315,6 @@ async function installAppChrome(page, title, drawer, showcase, showcaseImage) {
           visibility: hidden !important;
           opacity: 0 !important;
           pointer-events: none !important;
-        }
-        .brightshore-showcase-active body > *:not(#brightshore-native-chrome):not(#brightshore-showcase) {
-          display: none !important;
-        }
-        #brightshore-showcase {
-          position: fixed;
-          inset: 60px 0 68px 0;
-          z-index: 2147483000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 28px;
-          overflow: hidden;
-          color: #fff;
-          background:
-            linear-gradient(115deg, rgba(7, 10, 28, .82), rgba(31, 48, 132, .60) 48%, rgba(7, 10, 28, .82)),
-            ${showcaseImage ? `url("${showcaseImage}")` : "linear-gradient(135deg, #101427, #20275a)"};
-          background-size: cover;
-          background-position: center;
-        }
-        #brightshore-showcase section {
-          width: min(86vw, 780px);
-          text-align: center;
-          text-shadow: 0 2px 14px rgba(0,0,0,.42);
-        }
-        #brightshore-showcase .brightshore-kicker {
-          margin: 0 0 16px;
-          font-size: clamp(15px, 2.6vw, 24px);
-          line-height: 1.1;
-          font-weight: 800;
-          text-transform: uppercase;
-        }
-        #brightshore-showcase h1 {
-          margin: 0 auto 20px;
-          max-width: 760px;
-          color: #fff;
-          font-size: clamp(40px, 8.2vw, 78px);
-          line-height: 1.04;
-          font-weight: 850;
-          letter-spacing: 0;
-        }
-        #brightshore-showcase .brightshore-copy {
-          margin: 0 auto 34px;
-          max-width: 680px;
-          color: #fff;
-          font-size: clamp(22px, 4.7vw, 38px);
-          line-height: 1.22;
-          font-weight: 600;
-        }
-        #brightshore-showcase .brightshore-action {
-          width: min(76vw, 560px);
-          min-height: 76px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 16px 24px;
-          border: 2px solid rgba(255,255,255,.72);
-          border-radius: 8px;
-          background: rgba(0,0,0,.20);
-          color: #fff;
-          font-size: clamp(26px, 5.5vw, 46px);
-          font-weight: 750;
-          line-height: 1.1;
-          text-align: center;
         }
         .brightshore-topbar {
           position: fixed;
@@ -398,41 +403,8 @@ async function installAppChrome(page, title, drawer, showcase, showcaseImage) {
       shell.appendChild(style);
       document.body.appendChild(shell);
     },
-    { primary: brand.primary, title, drawer, showcase, showcaseImage }
+    { primary: brand.primary, tabTitle, drawer }
   );
-}
-
-async function buildFallback(page, title) {
-  await page.setContent(`
-    <!doctype html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
-          body {
-            margin: 0;
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, #f7f9ff, #e7ebff);
-            color: #222a35;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-          }
-          main {
-            width: min(78vw, 620px);
-            padding: 34px;
-            border: 1px solid #dce1ef;
-            border-radius: 8px;
-            background: rgba(255,255,255,.92);
-            box-shadow: 0 18px 42px rgba(34,42,80,.14);
-          }
-          h1 { margin: 0 0 10px; color: ${brand.primary}; font-size: 38px; line-height: 1.05; }
-          p { margin: 0; font-size: 18px; line-height: 1.4; }
-        </style>
-      </head>
-      <body><main><h1>${title}</h1><p>BrightShore Mortgage mobile app</p></main></body>
-    </html>
-  `);
 }
 
 async function capturePage(browser, device, shot) {
@@ -448,20 +420,21 @@ async function capturePage(browser, device, shot) {
   page.setDefaultTimeout(30000);
 
   try {
+    if (shot.requiresAuth) {
+      await loginToEStatus(page);
+    }
     await page.goto(shot.url, { waitUntil: "domcontentloaded", timeout: 45000 });
     await waitForUsefulPaint(page);
+    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
   } catch (error) {
-    console.warn(`Falling back for ${shot.name}: ${error.message}`);
-    await buildFallback(page, shot.title);
+    await context.close();
+    throw error;
   }
 
-  const showcaseImage = shot.showcase ? await getShowcaseImage(page) : "";
   await installAppChrome(
     page,
-    shot.title,
-    shot.drawer,
-    shot.showcase,
-    showcaseImage
+    shot.tabTitle || shot.title,
+    shot.drawer
   );
   await page.waitForTimeout(700);
 
@@ -487,8 +460,33 @@ async function capturePage(browser, device, shot) {
 
 async function main() {
   fs.mkdirSync(outRoot, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
   const outputs = [];
+
+  if (!["public", "auth", "all"].includes(screenshotMode)) {
+    throw new Error(
+      `Unknown BRIGHTSHORE_SCREENSHOT_MODE "${screenshotMode}". Use public, auth, or all.`
+    );
+  }
+
+  if (screenshotMode === "auth" && !hasEStatusCredentials) {
+    throw new Error(
+      "BRIGHTSHORE_SCREENSHOT_MODE=auth requires BRIGHTSHORE_ESTATUS_USERNAME and BRIGHTSHORE_ESTATUS_PASSWORD in .env or the process environment."
+    );
+  }
+
+  if (screenshotMode === "public") {
+    console.log(
+      "Generating public live-site screenshots. Set BRIGHTSHORE_SCREENSHOT_MODE=auth or all to include eStatus pages."
+    );
+  } else if (hasEStatusCredentials) {
+    console.log("Including authenticated eStatus screenshots.");
+  } else {
+    console.log(
+      "Skipping authenticated eStatus screenshots. Set BRIGHTSHORE_ESTATUS_USERNAME and BRIGHTSHORE_ESTATUS_PASSWORD in .env or the process environment to include them."
+    );
+  }
+
+  const browser = await chromium.launch({ headless: true });
 
   try {
     for (const device of devices) {
