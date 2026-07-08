@@ -7,8 +7,8 @@ BrightShore Mortgage is a separate app from Essex Mortgage and must keep its own
 - Expo slug: `brightshore-servicing`
 - Expo/EAS project ID: `5e9d4eee-d490-453e-b619-17643137965f`
 - App version: `1.0`
-- iOS build number: `1`
-- Android version code: `1`
+- iOS build number: managed by EAS remote versioning
+- Android version code: managed by EAS remote versioning
 
 ## GitHub Actions and EAS
 
@@ -53,6 +53,8 @@ The first iOS production build must be interactive because EAS needs to create o
 This project uses EAS remote app versioning through `cli.appVersionSource: "remote"` in `eas.json`, so EAS manages developer-facing build numbers (`android.versionCode` and `ios.buildNumber`) instead of relying on CI to commit version bumps back to Git.
 
 For Android submissions, Google Play requires the app to be created in Play Console and the first upload may need to be manual before API submission works. For iOS submissions, the App Store Connect app record must exist first.
+
+The `submit.production` profile is configured in `eas.json`. Android submits to the `internal` track by default. For fully non-interactive iOS submission, add the App Store Connect app id as `submit.production.ios.ascAppId` after the BrightShore app record exists.
 
 ## Apple Machine Setup
 
@@ -148,7 +150,7 @@ git push
 
 Pushing to `main` triggers the EAS build workflow when `EXPO_TOKEN` is configured. Manual release builds can be started from GitHub Actions > EAS Release.
 
-Use the manual `ios` or `all` platform options only after the first interactive iOS EAS build has completed successfully. Use the manual `submit` option only after App Store Connect, Google Play, EAS credentials, and store submission credentials are ready.
+Use the manual `ios` or `all` platform options only after the first interactive iOS EAS build has completed successfully. Use the manual `submit` option only after App Store Connect, Google Play, EAS credentials, and store submission credentials are ready. For iOS CI submission, set `submit.production.ios.ascAppId` in `eas.json` once App Store Connect shows the app id.
 
 ## App Store Screenshots
 
