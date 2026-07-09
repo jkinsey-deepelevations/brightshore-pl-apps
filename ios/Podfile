@@ -68,6 +68,6 @@ target 'BrightShoreMortgage' do
       end
     end
 
-    system('sh', File.join(__dir__, '..', 'ci_scripts', 'sanitize_privacy_manifests.sh'), File.join(__dir__, 'Pods'))
+    system('/bin/sh', File.join(__dir__, '..', 'ci_scripts', 'sanitize_privacy_manifests.sh'), File.join(__dir__, 'Pods'))
   end
 end

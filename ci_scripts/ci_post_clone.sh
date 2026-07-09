@@ -22,11 +22,11 @@ echo "Installing JavaScript dependencies..."
 npm ci
 
 echo "Sanitizing privacy manifests..."
-./ci_scripts/sanitize_privacy_manifests.sh
+/bin/sh ./ci_scripts/sanitize_privacy_manifests.sh
 
 echo "Installing iOS CocoaPods..."
 cd ios
 pod install
 
 echo "Sanitizing CocoaPods privacy manifests..."
-../ci_scripts/sanitize_privacy_manifests.sh ../ios/Pods
+/bin/sh ../ci_scripts/sanitize_privacy_manifests.sh ../ios/Pods
