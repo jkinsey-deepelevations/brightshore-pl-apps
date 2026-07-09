@@ -5,6 +5,16 @@ const { chromium } = require("playwright");
 const root = path.resolve(__dirname, "..");
 const outRoot = path.join(root, "dist", "app-store-screenshots");
 
+function resetOutputRoot() {
+  const resolvedOutRoot = path.resolve(outRoot);
+  const resolvedDistRoot = path.resolve(root, "dist");
+  if (!resolvedOutRoot.startsWith(`${resolvedDistRoot}${path.sep}`)) {
+    throw new Error(`Refusing to clear unexpected screenshot path: ${resolvedOutRoot}`);
+  }
+
+  fs.rmSync(resolvedOutRoot, { recursive: true, force: true });
+}
+
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) {
     return;
@@ -70,10 +80,17 @@ const brand = {
 
 const devices = [
   {
-    name: "iphone-6.9",
-    viewport: { width: 430, height: 932 },
+    name: "iphone-6.5",
+    viewport: { width: 414, height: 896 },
     deviceScaleFactor: 3,
-    expected: { width: 1290, height: 2796 },
+    expected: { width: 1242, height: 2688 },
+    isMobile: true,
+  },
+  {
+    name: "iphone-6.7",
+    viewport: { width: 428, height: 926 },
+    deviceScaleFactor: 3,
+    expected: { width: 1284, height: 2778 },
     isMobile: true,
   },
   {
@@ -459,6 +476,7 @@ async function capturePage(browser, device, shot) {
 }
 
 async function main() {
+  resetOutputRoot();
   fs.mkdirSync(outRoot, { recursive: true });
   const outputs = [];
 
