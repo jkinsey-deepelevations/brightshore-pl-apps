@@ -2,12 +2,17 @@ import Expo
 import React
 import ReactAppDependencyProvider
 
+#if canImport(AppTrackingTransparency)
+import AppTrackingTransparency
+#endif
+
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  private var hasScheduledTrackingAuthorizationRequest = false
 
   public override func application(
     _ application: UIApplication,
@@ -30,6 +35,57 @@ public class AppDelegate: ExpoAppDelegate {
 #endif
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  public override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    requestTrackingAuthorizationIfNeeded()
+  }
+
+  private func requestTrackingAuthorizationIfNeeded() {
+#if os(iOS) && canImport(AppTrackingTransparency)
+    guard #available(iOS 14, *) else {
+      return
+    }
+
+    guard !hasScheduledTrackingAuthorizationRequest else {
+      return
+    }
+
+    guard Bundle.main.object(forInfoDictionaryKey: "NSUserTrackingUsageDescription") != nil else {
+      assertionFailure("Missing NSUserTrackingUsageDescription; ATT prompt cannot be shown.")
+      return
+    }
+
+    guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
+      return
+    }
+
+    hasScheduledTrackingAuthorizationRequest = true
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+      guard let self = self else {
+        return
+      }
+
+      guard UIApplication.shared.applicationState == .active else {
+        self.hasScheduledTrackingAuthorizationRequest = false
+        return
+      }
+
+      guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
+        return
+      }
+
+      ATTrackingManager.requestTrackingAuthorization { status in
+        DispatchQueue.main.async {
+          if status == .notDetermined {
+            self.hasScheduledTrackingAuthorizationRequest = false
+          }
+        }
+      }
+    }
+#endif
   }
 
   // Linking API

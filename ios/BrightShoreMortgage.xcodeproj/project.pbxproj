@@ -147,6 +147,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				7A2E53470DA756C68E4152F7 /* [CP] Embed Pods Frameworks */,
+				A1B2C3D4E5F60718293A4B5C /* Sanitize Privacy Manifests */,
 			);
 			buildRules = (
 			);
@@ -317,6 +318,26 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BrightShoreMortgage/Pods-BrightShoreMortgage-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		A1B2C3D4E5F60718293A4B5C /* Sanitize Privacy Manifests */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/../ci_scripts/sanitize_privacy_manifests.sh",
+			);
+			name = "Sanitize Privacy Manifests";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../ci_scripts/sanitize_privacy_manifests.sh\" \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -2,6 +2,8 @@ import { JSX, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
+  AppState,
+  type AppStateStatus,
   Platform,
   StyleSheet,
   Text,
@@ -19,6 +21,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import brand from "../brand";
 import NetInfo from "@react-native-community/netinfo";
 import { moderateScale } from "react-native-size-matters";
+import {
+  getTrackingPermissionsAsync,
+  PermissionStatus,
+  requestTrackingPermissionsAsync,
+} from "expo-tracking-transparency";
 
 const DOCUMENT_EXTENSIONS = [
   "pdf",
@@ -261,6 +268,12 @@ export default function HomeScreen(): JSX.Element {
   const [webviewKey, setWebviewKey] = useState(0); // for forcing reloads
   const [isOffline, setIsOffline] = useState(false);
   const [isOpeningDocument, setIsOpeningDocument] = useState(false);
+  const [isTrackingPermissionReady, setIsTrackingPermissionReady] = useState(
+    Platform.OS !== "ios"
+  );
+  const [isTrackingAuthorized, setIsTrackingAuthorized] = useState(
+    Platform.OS !== "ios"
+  );
 
   const shouldBlockNativePrint = (sourceUri?: string) => {
     return isEStatusUri(currentUri) || (!!sourceUri && isEStatusUri(sourceUri));
@@ -560,8 +573,65 @@ export default function HomeScreen(): JSX.Element {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS !== "ios") {
+      return;
+    }
+
+    let isMounted = true;
+    let appStateSubscription: { remove: () => void } | undefined;
+    let isResolvingPermission = false;
+
+    const resolveTrackingPermission = async () => {
+      if (isResolvingPermission) {
+        return;
+      }
+
+      isResolvingPermission = true;
+      try {
+        const currentPermission = await getTrackingPermissionsAsync();
+        const permission =
+          currentPermission.status === PermissionStatus.UNDETERMINED
+            ? await requestTrackingPermissionsAsync()
+            : currentPermission;
+
+        if (!isMounted) {
+          return;
+        }
+
+        setIsTrackingAuthorized(permission.status === PermissionStatus.GRANTED);
+        setIsTrackingPermissionReady(true);
+      } catch {
+        if (isMounted) {
+          setIsTrackingAuthorized(false);
+          setIsTrackingPermissionReady(true);
+        }
+      } finally {
+        isResolvingPermission = false;
+      }
+    };
+
+    const watchWhenAppIsActive = (appState: AppStateStatus) => {
+      if (appState === "active") {
+        resolveTrackingPermission();
+      }
+    };
+
+    watchWhenAppIsActive(AppState.currentState);
+    appStateSubscription = AppState.addEventListener(
+      "change",
+      watchWhenAppIsActive
+    );
+
+    return () => {
+      isMounted = false;
+      appStateSubscription?.remove();
+    };
+  }, []);
+
   const injectedJavaScript = `
   (function() {
+    const isTrackingAuthorized = ${JSON.stringify(isTrackingAuthorized)};
     const currentHostname = window.location.hostname.toLowerCase();
     const currentPath = window.location.pathname.toLowerCase();
     const eStatusHostname = ${JSON.stringify(eStatusHostname)};
@@ -1855,7 +1925,11 @@ export default function HomeScreen(): JSX.Element {
         return false;
       }
 
-      window.Cookiebot.submitCustomConsent(false, false, false);
+      if (isTrackingAuthorized) {
+        window.Cookiebot.submitCustomConsent(true, true, true);
+      } else {
+        window.Cookiebot.submitCustomConsent(false, false, false);
+      }
 
       if (typeof window.Cookiebot.hide === 'function') {
         window.Cookiebot.hide();
@@ -2376,7 +2450,11 @@ export default function HomeScreen(): JSX.Element {
       <View>
         <ContactAccordion onNavigate={handleNavigate} />
       </View>
-      {isOffline ? (
+      {!isTrackingPermissionReady ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={brand.primary} size="large" />
+        </View>
+      ) : isOffline ? (
         <View style={styles.offlineContainer}>
           <View style={styles.offlineCard}>
             <Text style={styles.offlineText}>No Internet Connection</Text>
