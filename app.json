@@ -32,14 +32,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-tracking-transparency",
-        {
-          "userTrackingPermission": "This allows BrightShore Mortgage and its website partners to use cookies and device identifiers for tracking across apps and websites."
-        }
-      ]
-    ],
     "extra": {
       "eas": {
         "projectId": "5e9d4eee-d490-453e-b619-17643137965f"
