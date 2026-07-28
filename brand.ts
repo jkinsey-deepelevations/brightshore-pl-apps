@@ -2,6 +2,9 @@
 export default {
   appName: "BrightShore Mortgage",
   baseUrl: "https://brightshoremortgage.com",
+  manageUrl: "https://brightshoremortgage.com/manage",
+  manageLoginUrl: "https://brightshoremortgage.com/manage#login-to-account",
+  payAsGuestUrl: "https://brightshoremortgage.com/manage#pay-as-guest",
   publicHostnames: ["brightshoremortgage.com", "www.brightshoremortgage.com"],
   aboutSlug: "behind-every-experience",
   chatUrl: "https://brightshoremortgage.com/contact",

@@ -13,21 +13,21 @@ export default function BottomBar({ onNavigate }: NavbarProps): JSX.Element {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => onNavigate(`${brand.baseUrl}`)}
+        onPress={() => onNavigate(brand.baseUrl)}
       >
         <Ionicons style={styles.icons} name="home-outline" size={22} />
         <Text style={styles.label}>Home</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => onNavigate(`${brand.baseUrl}/manage#QuickAction`)}
+        onPress={() => onNavigate(brand.payAsGuestUrl)}
       >
         <Ionicons style={styles.icons} name="cash-outline" size={22} />
         <Text style={styles.label}>Payment</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => onNavigate(`${brand.eStatusHomeUrl}`)}
+        onPress={() => onNavigate(brand.manageLoginUrl)}
       >
         <Ionicons style={styles.icons} name="person-outline" size={22} />
         <Text style={styles.label}>Login</Text>
