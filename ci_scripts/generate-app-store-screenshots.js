@@ -71,9 +71,13 @@ const screenshotMode = process.env.BRIGHTSHORE_SCREENSHOT_MODE || "public";
 
 const brand = {
   baseUrl: "https://brightshoremortgage.com",
+  manageUrl: "https://brightshoremortgage.com/manage",
+  manageLoginUrl: "https://brightshoremortgage.com/manage#login-to-account",
+  payAsGuestUrl: "https://brightshoremortgage.com/manage#pay-as-guest",
   aboutSlug: "behind-every-experience",
   chatUrl: "https://brightshoremortgage.com/contact",
   faqUrl: "https://brightshoremortgage.com/faq",
+  eStatusLoginUrl: "https://brightshoremortgage.estatusconnect.com/User/Login",
   eStatusHomeUrl: "https://brightshoremortgage.estatusconnect.com",
   primary: "#20275a",
 };
@@ -113,13 +117,13 @@ const publicPages = [
     name: "02-payment",
     title: "Payment",
     tabTitle: "Payment",
-    url: `${brand.baseUrl}/manage#QuickAction`,
+    url: brand.payAsGuestUrl,
   },
   {
     name: "03-login",
     title: "Login",
     tabTitle: "Login",
-    url: brand.eStatusHomeUrl,
+    url: brand.manageLoginUrl,
   },
   {
     name: "04-faq",

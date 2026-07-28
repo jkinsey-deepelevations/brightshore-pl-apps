@@ -1,4 +1,4 @@
-import { JSX, useState, useEffect } from "react";
+import { JSX, useRef, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -207,7 +207,6 @@ const getAbsoluteUrl = (path: string, baseUri = brand.eStatusHomeUrl) =>
 const getNormalizedUri = (uri: string) => {
   try {
     const url = new URL(uri);
-    url.hash = "";
     return url.href.replace(/\/$/, "");
   } catch {
     return uri.replace(/\/$/, "");
@@ -247,6 +246,18 @@ const isEStatusLoginUri = (uri: string) => {
   }
 };
 
+const isManageUri = (uri: string) => {
+  try {
+    const url = new URL(uri);
+    return (
+      publicMortgageHostnames.includes(url.hostname.toLowerCase()) &&
+      url.pathname.toLowerCase().replace(/\/$/, "") === "/manage"
+    );
+  } catch {
+    return false;
+  }
+};
+
 const escapeHtmlAttribute = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
@@ -264,7 +275,9 @@ const getPrintableHtml = (html: string, baseUri?: string) => {
 };
 
 export default function HomeScreen(): JSX.Element {
-  const [currentUri, setCurrentUri] = useState(brand.baseUrl);
+  const webViewRef = useRef<WebView>(null);
+  const [currentUri, setCurrentUri] = useState(brand.manageUrl);
+  const [shouldOpenEmbeddedLogin, setShouldOpenEmbeddedLogin] = useState(false);
   const [webviewKey, setWebviewKey] = useState(0); // for forcing reloads
   const [isOffline, setIsOffline] = useState(false);
   const [isOpeningDocument, setIsOpeningDocument] = useState(false);
@@ -281,8 +294,8 @@ export default function HomeScreen(): JSX.Element {
 
   const handleNavigate = (uri: string) => {
     const nextUri =
-      isEStatusLoginUri(uri) || uri === brand.eStatusHomeUrl
-        ? brand.eStatusHomeUrl
+      getNormalizedUri(uri) === getNormalizedUri(brand.manageLoginUrl)
+        ? brand.manageUrl
         : uri;
 
     if (
@@ -293,9 +306,77 @@ export default function HomeScreen(): JSX.Element {
       return;
     }
 
+    if (getNormalizedUri(uri) === getNormalizedUri(brand.manageLoginUrl)) {
+      setShouldOpenEmbeddedLogin(true);
+
+      if (isManageUri(currentUri)) {
+        setShouldOpenEmbeddedLogin(false);
+        setTimeout(openEmbeddedLoginPortal, 50);
+      }
+    }
+
     if (getNormalizedUri(nextUri) !== getNormalizedUri(currentUri)) {
       setCurrentUri(nextUri);
     }
+  };
+
+  const openEmbeddedLoginPortal = () => {
+    webViewRef.current?.injectJavaScript(`
+      (function() {
+        var attempts = 0;
+        var maxAttempts = 20;
+
+        function findLoginLink() {
+          var links = Array.from(document.querySelectorAll('#main-content a[href], a[href]'));
+
+          return links.find(function(link) {
+            var href = String(link.href || '').toLowerCase();
+            var text = String(link.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+
+            return href.indexOf('brightshoremortgage.estatusconnect.com/user/login') >= 0 &&
+              text.indexOf('login') >= 0;
+          });
+        }
+
+        function openPortal() {
+          var loginLink = findLoginLink();
+          var portalAlreadyOpen =
+            document.querySelector('.estatus-portal-dialog') ||
+            document.documentElement.classList.contains('estatus-portal-open') ||
+            document.body.classList.contains('estatus-portal-open');
+
+          if (portalAlreadyOpen) {
+            return;
+          }
+
+          if (loginLink) {
+            loginLink.dispatchEvent(new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              view: window
+            }));
+          }
+
+          attempts += 1;
+
+          if (attempts < maxAttempts && !document.querySelector('.estatus-portal-dialog')) {
+            window.setTimeout(openPortal, 250);
+          }
+        }
+
+        openPortal();
+        true;
+      })();
+    `);
+  };
+
+  const openPendingEmbeddedLogin = (uri: string) => {
+    if (!shouldOpenEmbeddedLogin || !isManageUri(uri)) {
+      return;
+    }
+
+    setShouldOpenEmbeddedLogin(false);
+    setTimeout(openEmbeddedLoginPortal, 700);
   };
 
   const openAuthenticatedDocument = async (
@@ -2494,7 +2575,7 @@ export default function HomeScreen(): JSX.Element {
 
             } catch {}
           }}
-          ref={() => {}}
+          ref={webViewRef}
           key={webviewKey}
           source={{ uri: currentUri }}
           style={styles.webview}
@@ -2502,6 +2583,10 @@ export default function HomeScreen(): JSX.Element {
             setCurrentUri((previousUri) =>
               previousUri === navState.url ? previousUri : navState.url
             );
+            openPendingEmbeddedLogin(navState.url);
+          }}
+          onLoadEnd={(event) => {
+            openPendingEmbeddedLogin(event.nativeEvent.url);
           }}
           onShouldStartLoadWithRequest={(request) => {
             if (!request.url) {
