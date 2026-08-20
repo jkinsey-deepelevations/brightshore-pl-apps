@@ -8,6 +8,7 @@ node_modules
 *.log
 android-emulator-*.png
 android-phone-*.png
+.android-current-device
 
 android/local.properties
 android/.gradle/

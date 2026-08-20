@@ -8,8 +8,17 @@ on:
 
 jobs:
   validate:
-    name: Validate
+    name: Validate (${{ matrix.brand }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        brand:
+          - brightshore
+          - essex
+          - cornerstone
+    env:
+      APP_BRAND: ${{ matrix.brand }}
+      EXPO_PUBLIC_APP_BRAND: ${{ matrix.brand }}
 
     steps:
       - name: Checkout

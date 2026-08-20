@@ -1,22 +1,5 @@
-// Links MUST have https to work on a release APK/AAB
-export default {
-  appName: "BrightShore Mortgage",
-  baseUrl: "https://brightshoremortgage.com",
-  manageUrl: "https://brightshoremortgage.com/manage",
-  manageLoginUrl: "https://brightshoremortgage.com/manage#login-to-account",
-  payAsGuestUrl: "https://brightshoremortgage.com/manage#pay-as-guest",
-  publicHostnames: ["brightshoremortgage.com", "www.brightshoremortgage.com"],
-  aboutSlug: "behind-every-experience",
-  chatUrl: "https://brightshoremortgage.com/contact",
-  faqUrl: "https://brightshoremortgage.com/faq",
-  eStatusLoginUrl: "https://brightshoremortgage.estatusconnect.com/User/Login",
-  eStatusHomeUrl: "https://brightshoremortgage.estatusconnect.com",
-  primary: "#20275a",
-  secondary: "#9c6e2e",
-  textColor: "#fff",
-  textColorSecondary: "#333",
-  iconColor: "#fff",
-  borderColor: "#ccc",
-  phone: "8445669556",
-  email: "CustomerCare@servicingbranch.com",
-};
+import { getBrandConfig } from "./brands";
+
+// EXPO_PUBLIC_APP_BRAND is embedded in the JavaScript bundle at build time.
+// BrightShore remains the safe local-development default.
+export default getBrandConfig(process.env.EXPO_PUBLIC_APP_BRAND);

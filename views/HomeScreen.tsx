@@ -204,15 +204,6 @@ const logDocumentEvent = (_event: string, _details?: unknown) => {};
 const getAbsoluteUrl = (path: string, baseUri = brand.eStatusHomeUrl) =>
   new URL(path, baseUri).href;
 
-const getNormalizedUri = (uri: string) => {
-  try {
-    const url = new URL(uri);
-    return url.href.replace(/\/$/, "");
-  } catch {
-    return uri.replace(/\/$/, "");
-  }
-};
-
 const getUriHostname = (uri: string) => {
   try {
     return new URL(uri).hostname.toLowerCase();
@@ -234,30 +225,6 @@ const isEStatusUri = (uri: string) => {
   return getUriHostname(uri) === eStatusHostname;
 };
 
-const isEStatusLoginUri = (uri: string) => {
-  try {
-    const url = new URL(uri);
-    return (
-      url.hostname.toLowerCase() === eStatusHostname &&
-      url.pathname.toLowerCase().replace(/\/$/, "") === "/user/login"
-    );
-  } catch {
-    return false;
-  }
-};
-
-const isManageUri = (uri: string) => {
-  try {
-    const url = new URL(uri);
-    return (
-      publicMortgageHostnames.includes(url.hostname.toLowerCase()) &&
-      url.pathname.toLowerCase().replace(/\/$/, "") === "/manage"
-    );
-  } catch {
-    return false;
-  }
-};
-
 const escapeHtmlAttribute = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
@@ -276,8 +243,8 @@ const getPrintableHtml = (html: string, baseUri?: string) => {
 
 export default function HomeScreen(): JSX.Element {
   const webViewRef = useRef<WebView>(null);
-  const [currentUri, setCurrentUri] = useState(brand.manageUrl);
-  const [shouldOpenEmbeddedLogin, setShouldOpenEmbeddedLogin] = useState(false);
+  const [sourceUri, setSourceUri] = useState(brand.initialUrl);
+  const [currentUri, setCurrentUri] = useState(brand.initialUrl);
   const [webviewKey, setWebviewKey] = useState(0); // for forcing reloads
   const [isOffline, setIsOffline] = useState(false);
   const [isOpeningDocument, setIsOpeningDocument] = useState(false);
@@ -293,90 +260,19 @@ export default function HomeScreen(): JSX.Element {
   };
 
   const handleNavigate = (uri: string) => {
-    const nextUri =
-      getNormalizedUri(uri) === getNormalizedUri(brand.manageLoginUrl)
-        ? brand.manageUrl
-        : uri;
+    // Keep the requested source separate from the URL reported by the page.
+    // A late navigation callback from the previous page must not replace a
+    // newly selected tab. Only remount when the same requested destination is
+    // selected again (notably to reopen an embedded account portal after it
+    // closes); changing destinations can reuse the existing native WebView.
+    const shouldRemount = sourceUri === uri;
 
-    if (
-      nextUri === brand.eStatusHomeUrl &&
-      isEStatusUri(currentUri) &&
-      !isEStatusLoginUri(currentUri)
-    ) {
-      return;
+    setSourceUri(uri);
+    setCurrentUri(uri);
+
+    if (shouldRemount) {
+      setWebviewKey((key) => key + 1);
     }
-
-    if (getNormalizedUri(uri) === getNormalizedUri(brand.manageLoginUrl)) {
-      setShouldOpenEmbeddedLogin(true);
-
-      if (isManageUri(currentUri)) {
-        setShouldOpenEmbeddedLogin(false);
-        setTimeout(openEmbeddedLoginPortal, 50);
-      }
-    }
-
-    if (getNormalizedUri(nextUri) !== getNormalizedUri(currentUri)) {
-      setCurrentUri(nextUri);
-    }
-  };
-
-  const openEmbeddedLoginPortal = () => {
-    webViewRef.current?.injectJavaScript(`
-      (function() {
-        var attempts = 0;
-        var maxAttempts = 20;
-
-        function findLoginLink() {
-          var links = Array.from(document.querySelectorAll('#main-content a[href], a[href]'));
-
-          return links.find(function(link) {
-            var href = String(link.href || '').toLowerCase();
-            var text = String(link.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase();
-
-            return href.indexOf('brightshoremortgage.estatusconnect.com/user/login') >= 0 &&
-              text.indexOf('login') >= 0;
-          });
-        }
-
-        function openPortal() {
-          var loginLink = findLoginLink();
-          var portalAlreadyOpen =
-            document.querySelector('.estatus-portal-dialog') ||
-            document.documentElement.classList.contains('estatus-portal-open') ||
-            document.body.classList.contains('estatus-portal-open');
-
-          if (portalAlreadyOpen) {
-            return;
-          }
-
-          if (loginLink) {
-            loginLink.dispatchEvent(new MouseEvent('click', {
-              bubbles: true,
-              cancelable: true,
-              view: window
-            }));
-          }
-
-          attempts += 1;
-
-          if (attempts < maxAttempts && !document.querySelector('.estatus-portal-dialog')) {
-            window.setTimeout(openPortal, 250);
-          }
-        }
-
-        openPortal();
-        true;
-      })();
-    `);
-  };
-
-  const openPendingEmbeddedLogin = (uri: string) => {
-    if (!shouldOpenEmbeddedLogin || !isManageUri(uri)) {
-      return;
-    }
-
-    setShouldOpenEmbeddedLogin(false);
-    setTimeout(openEmbeddedLoginPortal, 700);
   };
 
   const openAuthenticatedDocument = async (
@@ -717,6 +613,9 @@ export default function HomeScreen(): JSX.Element {
     const currentPath = window.location.pathname.toLowerCase();
     const eStatusHostname = ${JSON.stringify(eStatusHostname)};
     const publicMortgageHostnames = ${JSON.stringify(publicMortgageHostnames)};
+    const configuredPaymentTabLabel = ${JSON.stringify(
+      brand.paymentTabLabel || "Pay as Guest"
+    )};
     const isConfiguredEStatusHost = currentHostname === eStatusHostname;
     const normalizedPath = currentPath.replace(/\\/+$/, '');
     const isConfiguredEStatusLoginPath =
@@ -2522,6 +2421,42 @@ export default function HomeScreen(): JSX.Element {
     }
     window.addEventListener('hashchange', scrollToHash);
     scrollToHash();
+
+    var configuredPaymentHash = String(window.location.hash || '').toLowerCase();
+    if (
+      configuredPaymentTabLabel &&
+      (configuredPaymentHash === '#quick-actions' ||
+        configuredPaymentHash === '#pay-as-guest')
+    ) {
+      var paymentTabAttempts = 0;
+      var paymentTabSelectedChecks = 0;
+      var paymentTabInterval = window.setInterval(function() {
+        paymentTabAttempts += 1;
+        var paymentTab = Array.from(document.querySelectorAll('[role="tab"], button')).find(function(element) {
+          var normalizedText = String(element.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+          var normalizedId = String(element.id || '').trim().toLowerCase();
+          return normalizedId === configuredPaymentHash.slice(1) ||
+            normalizedText === configuredPaymentTabLabel.toLowerCase();
+        });
+
+        if (paymentTab) {
+          if (paymentTab.getAttribute('aria-selected') !== 'true') {
+            paymentTabSelectedChecks = 0;
+            paymentTab.click();
+          } else {
+            paymentTabSelectedChecks += 1;
+          }
+
+          if (paymentTabSelectedChecks >= 4) {
+            window.clearInterval(paymentTabInterval);
+          }
+        }
+
+        if (paymentTabAttempts >= 80) {
+          window.clearInterval(paymentTabInterval);
+        }
+      }, 250);
+    }
     true;
   })();
 `;
@@ -2577,16 +2512,12 @@ export default function HomeScreen(): JSX.Element {
           }}
           ref={webViewRef}
           key={webviewKey}
-          source={{ uri: currentUri }}
+          source={{ uri: sourceUri }}
           style={styles.webview}
           onNavigationStateChange={(navState) => {
             setCurrentUri((previousUri) =>
               previousUri === navState.url ? previousUri : navState.url
             );
-            openPendingEmbeddedLogin(navState.url);
-          }}
-          onLoadEnd={(event) => {
-            openPendingEmbeddedLogin(event.nativeEvent.url);
           }}
           onShouldStartLoadWithRequest={(request) => {
             if (!request.url) {

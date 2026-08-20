@@ -3,6 +3,15 @@ name: EAS Release
 on:
   workflow_dispatch:
     inputs:
+      brand:
+        description: Private-label app to build
+        required: true
+        default: brightshore
+        type: choice
+        options:
+          - brightshore
+          - essex
+          - cornerstone
       platform:
         description: Platform to build
         required: true
@@ -32,6 +41,7 @@ jobs:
 
     env:
       PLATFORM: ${{ github.event_name == 'push' && 'android' || github.event.inputs.platform || 'all' }}
+      APP_BRAND: ${{ github.event_name == 'push' && 'brightshore' || github.event.inputs.brand || 'brightshore' }}
       SUBMIT: ${{ github.event.inputs.submit || 'false' }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -64,8 +74,8 @@ jobs:
 
       - name: Trigger EAS build
         if: env.SUBMIT != 'true'
-        run: eas build --platform "$PLATFORM" --profile production --non-interactive --no-wait
+        run: eas build --platform "$PLATFORM" --profile "$APP_BRAND-production" --non-interactive --no-wait
 
       - name: Build and submit with EAS
         if: env.SUBMIT == 'true'
-        run: eas build --platform "$PLATFORM" --profile production --non-interactive --auto-submit
+        run: eas build --platform "$PLATFORM" --profile "$APP_BRAND-production" --non-interactive --auto-submit

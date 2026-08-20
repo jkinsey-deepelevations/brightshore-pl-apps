@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import brand from "../brand";
+import brandAssets from "../brandAssets";
 import { moderateScale } from "react-native-size-matters";
 
 type AccordionProps = {
@@ -30,17 +31,17 @@ const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.84, 420);
 const MENU_ITEMS = [
   {
     icon: "home-outline",
-    label: "Home",
+    label: brand.drawerLabels?.home || "Home",
     onPress: "home",
   },
   {
     icon: "information-circle-outline",
-    label: "About",
+    label: brand.drawerLabels?.about || "About",
     onPress: "about",
   },
   {
     icon: "heart-outline",
-    label: "Hardship",
+    label: brand.drawerLabels?.hardship || "Hardship",
     onPress: "hardship",
   },
   {
@@ -55,12 +56,12 @@ const MENU_ITEMS = [
   },
   {
     icon: "chatbubbles-outline",
-    label: "Contact",
+    label: brand.drawerLabels?.contact || "Contact",
     onPress: "contact",
   },
   {
     icon: "repeat",
-    label: "Refinance",
+    label: brand.drawerLabels?.refinance || "Refinance",
     onPress: "refinance",
   },
 ] as const;
@@ -167,31 +168,31 @@ export default function ContactAccordion({ onNavigate }: AccordionProps) {
   const handleMenuItem = (item: (typeof MENU_ITEMS)[number]) => {
     switch (item.onPress) {
       case "home":
-        handleNavigate(brand.baseUrl);
+        handleNavigate(brand.initialUrl);
         break;
       case "about":
-        handleNavigate(`${brand.baseUrl}/${brand.aboutSlug}`);
+        handleNavigate(brand.aboutUrl);
         break;
       case "hardship":
-        handleNavigate(`${brand.baseUrl}/mortgage-assistance`);
+        handleNavigate(brand.hardshipUrl);
         break;
       case "call":
         handleExternal(
           `tel:${brand.phone}`,
-          `Please call BrightShore at ${brand.phone}.`
+          `Please call ${brand.appName} at ${brand.phone}.`
         );
         break;
       case "email":
         handleExternal(
           `mailto:${brand.email}`,
-          `Please email BrightShore at ${brand.email}.`
+          `Please email ${brand.appName} at ${brand.email}.`
         );
         break;
       case "contact":
         handleNavigate(brand.chatUrl);
         break;
       case "refinance":
-        handleNavigate(`${brand.baseUrl}/refinancing-your-loan`);
+        handleNavigate(brand.refinanceUrl);
         break;
     }
   };
@@ -205,6 +206,7 @@ export default function ContactAccordion({ onNavigate }: AccordionProps) {
           hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
           onPress={toggleDrawer}
           style={styles.menuButton}
+          testID="nav-menu"
         >
           <Ionicons
             color={brand.iconColor}
@@ -245,7 +247,7 @@ export default function ContactAccordion({ onNavigate }: AccordionProps) {
               <Image
                 accessibilityIgnoresInvertColors
                 resizeMode="contain"
-                source={require("../assets/brightshore-logo-white.png")}
+                source={brandAssets.drawerLogo}
                 style={styles.drawerLogo}
               />
             </View>
@@ -262,9 +264,11 @@ export default function ContactAccordion({ onNavigate }: AccordionProps) {
               {MENU_ITEMS.map((item) => (
                 <TouchableOpacity
                   activeOpacity={0.76}
+                  accessibilityLabel={`${item.label} menu item`}
                   key={item.label}
                   onPress={() => handleMenuItem(item)}
                   style={styles.menuItem}
+                  testID={`drawer-${item.onPress}`}
                 >
                   <View style={styles.iconPill}>
                     <Ionicons color={brand.secondary} name={item.icon} size={20} />

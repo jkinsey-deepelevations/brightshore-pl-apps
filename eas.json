@@ -5,12 +5,63 @@
   },
   "build": {
     "production": {
+      "env": {
+        "APP_BRAND": "brightshore",
+        "EXPO_PUBLIC_APP_BRAND": "brightshore"
+      },
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       },
       "ios": {
         "simulator": false
+      }
+    },
+    "brightshore-production": {
+      "extends": "production"
+    },
+    "essex-production": {
+      "extends": "production",
+      "env": {
+        "APP_BRAND": "essex",
+        "EXPO_PUBLIC_APP_BRAND": "essex"
+      }
+    },
+    "cornerstone-production": {
+      "extends": "production",
+      "env": {
+        "APP_BRAND": "cornerstone",
+        "EXPO_PUBLIC_APP_BRAND": "cornerstone"
+      }
+    },
+    "screenshot": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "brightshore-screenshot": {
+      "extends": "screenshot",
+      "env": {
+        "APP_BRAND": "brightshore",
+        "EXPO_PUBLIC_APP_BRAND": "brightshore"
+      }
+    },
+    "essex-screenshot": {
+      "extends": "screenshot",
+      "env": {
+        "APP_BRAND": "essex",
+        "EXPO_PUBLIC_APP_BRAND": "essex"
+      }
+    },
+    "cornerstone-screenshot": {
+      "extends": "screenshot",
+      "env": {
+        "APP_BRAND": "cornerstone",
+        "EXPO_PUBLIC_APP_BRAND": "cornerstone"
       }
     }
   },
@@ -21,6 +72,27 @@
       },
       "ios": {
         "ascAppId": "6788047283"
+      }
+    },
+    "brightshore-production": {
+      "android": {
+        "track": "internal"
+      },
+      "ios": {
+        "ascAppId": "6788047283"
+      }
+    },
+    "essex-production": {
+      "android": {
+        "track": "internal"
+      }
+    },
+    "cornerstone-production": {
+      "android": {
+        "track": "internal"
+      },
+      "ios": {
+        "ascAppId": "6803138269"
       }
     }
   }

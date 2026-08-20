@@ -18,6 +18,11 @@ ios/build/
 ios/.xcode.env.local
 ios/BrightShoreMortgage.xcodeproj/project.xcworkspace/
 
+# Cloud builds use app.config.ts and CNG so each brand receives its own native
+# identifiers, icons, splash screen, permissions, and architecture setting.
+/android/
+/ios/
+
 credentials/
 credentials.json
 *.jks
