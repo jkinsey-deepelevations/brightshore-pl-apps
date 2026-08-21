@@ -1,0 +1,73 @@
+{
+  "brand": "essex",
+  "appName": "Essex Servicing",
+  "platform": "ios",
+  "appId": "com.essexservicing.app",
+  "marketingVersion": "1.1.1",
+  "storeBuildBaseline": "37",
+  "captureSource": "installed-release-app",
+  "device": "iPhone 17 Pro Max",
+  "deviceClass": "iphone-6.9",
+  "git": {
+    "commit": "bf7eb87",
+    "dirty": true
+  },
+  "screenshots": [
+    {
+      "name": "01-home",
+      "file": "01-home.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "881bebd54169a53e9c030a5522a0becf522ad3db3fb5029f404c0c3ac94c640a",
+      "capturedAt": "2026-08-20T20:48:00.907Z"
+    },
+    {
+      "name": "02-payment",
+      "file": "02-payment.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "70237319028bbcb2a1ec39ba602ccee9bce7179f683e57c86f7868afdf56408a",
+      "capturedAt": "2026-08-20T20:48:39.911Z"
+    },
+    {
+      "name": "03-login",
+      "file": "03-login.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "8887b6e90984bfba4e5aed7981e435bca5fcd7ad6c1b6fbc2c07a75b400f8f86",
+      "capturedAt": "2026-08-20T20:49:16.906Z"
+    },
+    {
+      "name": "04-faq",
+      "file": "04-faq.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "ef4fac81252e81e370b916fd5961461092dc61b7d77d9db555045fb1fd4b9de5",
+      "capturedAt": "2026-08-20T20:49:51.914Z"
+    },
+    {
+      "name": "05-menu",
+      "file": "05-menu.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "ee935a86df42f8a9ddfbee6eaf6d5dc096453bc88a1d64a37e1ea8dcd0750267",
+      "capturedAt": "2026-08-20T20:50:10.891Z"
+    },
+    {
+      "name": "06-about",
+      "file": "06-about.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "d073f45c557a620319da7e73f21635ceee0caf5367520a7c8d25a22f75c6d4e4",
+      "capturedAt": "2026-08-20T20:50:45.901Z"
+    },
+    {
+      "name": "07-hardship",
+      "file": "07-hardship.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "f8fb60b4dbb0bf906b50a8dfdc5739c7473f12a40169e0da3b75a4ed2229da66",
+      "capturedAt": "2026-08-20T20:51:20.895Z"
+    }
+  ]
+}

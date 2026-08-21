@@ -1,0 +1,73 @@
+{
+  "brand": "brightshore",
+  "appName": "BrightShore Mortgage",
+  "platform": "ios",
+  "appId": "com.brightshoremortgage.app",
+  "marketingVersion": "1.0",
+  "storeBuildBaseline": "8",
+  "captureSource": "installed-release-app",
+  "device": "iPad Pro 13-inch (M4)",
+  "deviceClass": "ipad-13",
+  "git": {
+    "commit": "bf7eb87",
+    "dirty": true
+  },
+  "screenshots": [
+    {
+      "name": "01-home",
+      "file": "01-home.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "c46ed9cbe2e57596314d63793d39f640c20ed74e4e54c89b353d33380c462c9f",
+      "capturedAt": "2026-08-20T20:56:00.954Z"
+    },
+    {
+      "name": "02-payment",
+      "file": "02-payment.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "bc20074892254e2151dbb642b1f62b4179ac5fb9c2f62bf0408c11495158f309",
+      "capturedAt": "2026-08-20T20:56:39.942Z"
+    },
+    {
+      "name": "03-login",
+      "file": "03-login.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "9816dbf402dfaf3648d8ce16e6107e2e5a4a3d6aed1c8fbd6aebd00f2f4a6ca7",
+      "capturedAt": "2026-08-20T20:57:16.958Z"
+    },
+    {
+      "name": "04-faq",
+      "file": "04-faq.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "2f3d7679d2b42bc12356ccd25b75fb00c85975b7836c66ae00e6121e49bf9346",
+      "capturedAt": "2026-08-20T20:57:51.989Z"
+    },
+    {
+      "name": "05-menu",
+      "file": "05-menu.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "0232e9967e1e9bc9ecdf79ff165d8914261d47a929e8e12e993436ea938ddbc0",
+      "capturedAt": "2026-08-20T20:58:10.998Z"
+    },
+    {
+      "name": "06-about",
+      "file": "06-about.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "a346a808a5c52569d2727c0010c7de00191c15cc05219f347153ce2358106083",
+      "capturedAt": "2026-08-20T20:58:46.009Z"
+    },
+    {
+      "name": "07-hardship",
+      "file": "07-hardship.jpg",
+      "width": 2064,
+      "height": 2752,
+      "sha256": "c715263a50a2a4cc8b014bfc76e54f2aa136c4c475dee0e0222a9d94863fe3f1",
+      "capturedAt": "2026-08-20T20:59:21.050Z"
+    }
+  ]
+}

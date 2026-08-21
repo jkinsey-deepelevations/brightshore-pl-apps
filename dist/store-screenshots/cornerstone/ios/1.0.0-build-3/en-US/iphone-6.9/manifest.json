@@ -1,0 +1,73 @@
+{
+  "brand": "cornerstone",
+  "appName": "Cornerstone First Mortgage",
+  "platform": "ios",
+  "appId": "com.cfmtg.servicing",
+  "marketingVersion": "1.0.0",
+  "storeBuildBaseline": "3",
+  "captureSource": "installed-release-app",
+  "device": "iPhone 17 Pro Max",
+  "deviceClass": "iphone-6.9",
+  "git": {
+    "commit": "bf7eb87",
+    "dirty": true
+  },
+  "screenshots": [
+    {
+      "name": "01-home",
+      "file": "01-home.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "967c72ff29f09432a07018f2833bc2264b85da9bcd7b257513c3790182d63141",
+      "capturedAt": "2026-08-20T20:51:54.013Z"
+    },
+    {
+      "name": "02-payment",
+      "file": "02-payment.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "4766134d0a095f6c19ae3f6ae76f143371a6eea787415ccd1bb09078380da2d2",
+      "capturedAt": "2026-08-20T20:52:33.022Z"
+    },
+    {
+      "name": "03-login",
+      "file": "03-login.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "776273d0367f741b4bc7ae9d2beeddc080b2bd3ccb251f0b1c1518a2e293b02a",
+      "capturedAt": "2026-08-20T20:53:10.029Z"
+    },
+    {
+      "name": "04-faq",
+      "file": "04-faq.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "54bb0b1d99e037b238549b39a0dc5d8d5d86a97e3d8cddb63e3ccea310687242",
+      "capturedAt": "2026-08-20T20:53:45.054Z"
+    },
+    {
+      "name": "05-menu",
+      "file": "05-menu.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "4db56c456894fe1fb9e52d9121212c97150ff235b1e0b16ebb7d838a14ecd758",
+      "capturedAt": "2026-08-20T20:54:04.067Z"
+    },
+    {
+      "name": "06-about",
+      "file": "06-about.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "c7ef07de36aea5ffd980cb808a5af03d480ab3c037e457b5f497ea82194fc1d6",
+      "capturedAt": "2026-08-20T20:54:39.077Z"
+    },
+    {
+      "name": "07-hardship",
+      "file": "07-hardship.jpg",
+      "width": 1320,
+      "height": 2868,
+      "sha256": "55bdf676da8c6b71c618eb58905aeceb42b17617364d3502b990f85e1665e8ce",
+      "capturedAt": "2026-08-20T20:55:14.113Z"
+    }
+  ]
+}
