@@ -26,6 +26,12 @@ const cornerstone = {
   paymentUrl: `${manageUrl}#pay-as-guest`,
   loginUrl: `${manageUrl}?portal=account`,
   loginStrategy: "embedded-public-portal",
+  // iOS must authenticate in the main WebView rather than a cross-site iframe.
+  iosLogin: {
+    loginUrl: `${eStatusHomeUrl}/User/Login`,
+    loginStrategy: "direct",
+    manageLoginUrl: `${eStatusHomeUrl}/User/Login`,
+  },
   manageUrl,
   manageLoginUrl: `${manageUrl}?portal=account`,
   payAsGuestUrl: `${manageUrl}#pay-as-guest`,

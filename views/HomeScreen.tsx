@@ -155,7 +155,10 @@ const getDocumentFilename = (
 
 const getCookieHeader = async (uri: string) => {
   try {
-    const cookies = await CookieManager.get(uri);
+    // iOS WebViews keep HttpOnly session cookies in WKHTTPCookieStore. Reading
+    // the default NSHTTPCookieStorage can therefore produce an unauthenticated
+    // native document request even while the borrower is logged in onscreen.
+    const cookies = await CookieManager.get(uri, Platform.OS === "ios");
 
     return Object.values(cookies)
       .filter((cookie) => cookie.name && /^[^=;\s]+$/.test(cookie.name))
@@ -627,6 +630,20 @@ export default function HomeScreen(): JSX.Element {
       isConfiguredEStatusHost && (normalizedPath === '' || normalizedPath === '/');
     const isPublicMortgageHost = publicMortgageHostnames.indexOf(currentHostname) >= 0;
     const shouldPreparePolish = isConfiguredEStatusHost || isPublicMortgageHost;
+    // Capture before the public site's SPA handler opens its account iframe.
+    if (${JSON.stringify(Platform.OS === "ios" && !!brand.iosLogin)} && isPublicMortgageHost && !window.__nativeAccountRoutingInstalled) {
+      window.__nativeAccountRoutingInstalled = true;
+      window.addEventListener('click', function(event) {
+        var anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+        if (!anchor) return;
+        var url = new URL(anchor.href, window.location.href);
+        var manage = new URL(${JSON.stringify(brand.manageUrl)});
+        if (url.origin !== manage.origin || url.pathname.replace(/\\/+$/, '') !== manage.pathname || url.searchParams.get('portal') !== 'account') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign(${JSON.stringify(brand.loginUrl)});
+      }, true);
+    }
     const headElement = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
     function appendToDocumentHead(element) {
       headElement.appendChild(element);
@@ -1932,10 +1949,6 @@ export default function HomeScreen(): JSX.Element {
     var documentUrlHints = ${JSON.stringify(DOCUMENT_URL_HINTS)};
     var lastPrintGestureAt = 0;
 
-    if (isConfiguredEStatusHost) {
-      return true;
-    }
-
     function isDocumentLink(href) {
       try {
         var url = new URL(href, window.location.href);
@@ -1957,6 +1970,57 @@ export default function HomeScreen(): JSX.Element {
       } catch (error) {
         return false;
       }
+    }
+
+    // The servicing site's document links request a short-lived token through
+    // JavaScript instead of navigating to a file URL. Handle those links in
+    // native code while leaving login forms and the site's print controls
+    // completely untouched.
+    if (isConfiguredEStatusHost) {
+      if (window.__brightshoreDocumentHandlerInstalled) {
+        return true;
+      }
+      window.__brightshoreDocumentHandlerInstalled = true;
+
+      document.addEventListener('click', function(event) {
+        var control = event.target && event.target.closest
+          ? event.target.closest('a[href], [data-dockey], [data-doc-key]')
+          : null;
+
+        if (!control) {
+          return;
+        }
+
+        var docKey = control.dataset && (control.dataset.dockey || control.dataset.docKey);
+        if (docKey) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'document-key',
+            docKey: docKey,
+            label: control.textContent ? control.textContent.trim() : '',
+            cookie: document.cookie || ''
+          }));
+          return;
+        }
+
+        var href = control.href || (control.getAttribute && control.getAttribute('href')) || '';
+        if (!href || !isDocumentLink(href)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'document-link',
+          uri: new URL(href, window.location.href).href,
+          cookie: document.cookie || ''
+        }));
+      }, true);
+
+      return true;
     }
 
     if (window.__brightshoreDocumentHandlerInstalled) {
@@ -2522,6 +2586,19 @@ export default function HomeScreen(): JSX.Element {
           onShouldStartLoadWithRequest={(request) => {
             if (!request.url) {
               return true;
+            }
+
+            if (Platform.OS === "ios" && brand.iosLogin && request.isTopFrame !== false) {
+              try {
+                const url = new URL(request.url);
+                const manage = new URL(brand.manageUrl);
+                if (url.origin === manage.origin &&
+                    url.pathname.replace(/\/+$/, "") === manage.pathname &&
+                    url.searchParams.get("portal") === "account") {
+                  handleNavigate(brand.loginUrl);
+                  return false;
+                }
+              } catch {}
             }
 
             if (isDocumentUrl(request.url)) {

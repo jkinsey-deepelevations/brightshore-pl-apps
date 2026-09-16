@@ -24,6 +24,11 @@ export type BrandConfig = {
   paymentTabLabel?: string;
   loginUrl: string;
   loginStrategy: LoginStrategy;
+  iosLogin?: {
+    loginUrl: string;
+    loginStrategy: LoginStrategy;
+    manageLoginUrl: string;
+  };
   manageUrl: string;
   manageLoginUrl: string;
   payAsGuestUrl: string;

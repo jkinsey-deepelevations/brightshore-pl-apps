@@ -1,6 +1,32 @@
 # Cornerstone store release status
 
-Status date: August 19, 2026
+Status date: September 9, 2026
+
+## iOS direct eStatus update
+
+- Version `1.0.0`, iOS build `4`; bundle ID `com.cfmtg.servicing`.
+- The iOS Login tab and public website account links now open
+  `https://servicingbranch.estatusconnect.com/User/Login` in the main WebView.
+- Android retains the embedded `/manage?portal=account` account portal.
+- Home and Pay as Guest retain their existing public website destinations.
+- Validation: TypeScript, resolved Cornerstone Expo identity, and Playwright
+  checks of the live website using the app's injected script. The iOS account
+  click navigated the main page to eStatus; Android opened the account iframe.
+  The test intercepted the destination response; authenticated borrower login
+  and document downloads still require an iPhone check.
+- [Signed iOS build 4](https://expo.dev/accounts/jkinsey-deepelevations/projects/cornerstone-servicing-app/builds/867077b9-c7c6-4e17-8395-5ba9b6065998)
+- [App Store Connect submission](https://expo.dev/accounts/jkinsey-deepelevations/projects/cornerstone-servicing-app/submissions/ab602de5-b8ca-40d7-b524-af77049182cb)
+- App Store Connect app ID: `6803138269`.
+- Signed build finished successfully. Automatic App Store Connect submission
+  is `IN_QUEUE` with no reported error at the last check. Upload completion
+  and Apple processing are not yet confirmed; use the submission link above.
+- Local signed artifact: `dist/eas-artifacts/cornerstone-ios-app-store-4.ipa`.
+  Its embedded Info.plist confirms the Cornerstone display name, bundle ID,
+  version `1.0.0`, and build `4`.
+- IPA SHA-256: `9466d165172c21051384410fbbb21a90854e5365a38464f990e0c3b846e3a6d2`.
+
+The August 19 artifacts and original store handoff notes below are retained
+for reference. Android version code `3` remains the existing Android artifact.
 
 ## Identity
 

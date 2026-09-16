@@ -24,8 +24,16 @@ const getBrandKey = (value) => {
   );
 };
 
-/** @param {string | undefined} value */
-const getBrandConfig = (value) => brands[getBrandKey(value)];
+/**
+ * @param {string | undefined} value
+ * @param {string} [platform]
+ */
+const getBrandConfig = (value, platform) => {
+  const brand = brands[getBrandKey(value)];
+  return platform === "ios" && brand.iosLogin
+    ? { ...brand, ...brand.iosLogin }
+    : brand;
+};
 
 module.exports = {
   DEFAULT_BRAND,

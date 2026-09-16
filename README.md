@@ -70,17 +70,25 @@ native project to another brand. Use the brand-specific EAS profiles, or run
 `expo prebuild` in a clean generated workspace, for private-label native builds.
 
 The current shared runtime is intentionally based on the newer BrightShore
-implementation. Brand selection now covers identity, assets, destinations, and
-the two observed login/navigation strategies. The large WebView-polishing block
-and app-store screenshot generator still contain BrightShore-specific behavior;
-those should be reconciled separately when the desired Essex core behavior is
-chosen.
+implementation. Brand selection now covers identity, assets, and destinations.
+BrightShore and Essex load the authenticated servicing portal directly in the
+main WebView. Cornerstone uses direct eStatus login on iOS and retains the
+public site's embedded account portal on Android. The large
+WebView-polishing block and app-store screenshot generator still contain
+BrightShore-specific behavior; those should be reconciled separately when the
+desired Essex core behavior is chosen.
 
-Cornerstone uses the shared embedded-login runtime and only loads servicing
-content from `https://cfmtg.accountaccessnow.com/`. Its drawer routes map to the
-portal's Manage Your Mortgage, Transferred to Cornerstone, Mortgage Assistance,
-Contact Us, and Learning Center pages. `cfmtg.com` is a visual brand reference,
-not an in-app WebView destination.
+Cornerstone loads public servicing content from
+`https://cfmtg.accountaccessnow.com/` and authenticated account content from
+`https://servicingbranch.estatusconnect.com/`. Its drawer routes map to the
+public site's Manage Your Mortgage, Transferred to Cornerstone, Mortgage
+Assistance, Contact Us, and Learning Center pages. `cfmtg.com` is a visual brand
+reference, not an in-app WebView destination.
+
+Cornerstone's iOS Login tab and public website account links open
+`https://servicingbranch.estatusconnect.com/User/Login` in the main WebView.
+Android retains `https://cfmtg.accountaccessnow.com/manage?portal=account`.
+The home page and Pay as Guest destinations remain on the public website.
 
 Native architecture is shared rather than branded. Every current build uses
 `newArchEnabled: false`, matching the tested BrightShore runtime and its native
@@ -121,7 +129,7 @@ Essex:
 - Android package: `com.essexservicing.app`
 - Expo slug: `essex-servicing-app`
 - Expo/EAS project ID: `ef50d6ef-2f92-4922-b98e-679f61df082c`
-- App version: `1.1.1`
+- App version: `1.1.2`
 - Current live iOS build: `37`
 - Current live Android version code: `4`
 - EAS remote counters were initialized to those live values on August 19, 2026

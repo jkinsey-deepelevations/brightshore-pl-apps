@@ -66,6 +66,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...(brand.androidVersionCode
         ? { versionCode: brand.androidVersionCode }
         : {}),
+      blockedPermissions: [
+        ...(config.android?.blockedPermissions ?? []),
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+      ],
       adaptiveIcon: {
         foregroundImage: brand.assets.adaptiveIcon,
         backgroundColor: "#ffffff",

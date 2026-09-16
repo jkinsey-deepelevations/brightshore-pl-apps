@@ -1,5 +1,6 @@
 const baseUrl = "https://brightshoremortgage.com";
 const manageUrl = `${baseUrl}/manage`;
+const eStatusHomeUrl = "https://brightshoremortgage.estatusconnect.com";
 
 /** @type {import("./types").BrandConfig} */
 const brightshore = {
@@ -23,10 +24,13 @@ const brightshore = {
   baseUrl,
   initialUrl: manageUrl,
   paymentUrl: `${manageUrl}#pay-as-guest`,
-  loginUrl: `${manageUrl}?portal=account`,
-  loginStrategy: "embedded-public-portal",
+  // Keep the authenticated servicing portal in the main WebView. Loading it
+  // in the public site's cross-origin iframe can partition the login cookies
+  // that are also required by native document downloads.
+  loginUrl: eStatusHomeUrl,
+  loginStrategy: "direct",
   manageUrl,
-  manageLoginUrl: `${manageUrl}?portal=account`,
+  manageLoginUrl: eStatusHomeUrl,
   payAsGuestUrl: `${manageUrl}#pay-as-guest`,
   publicHostnames: ["brightshoremortgage.com", "www.brightshoremortgage.com"],
   aboutSlug: "behind-every-experience",
@@ -38,9 +42,8 @@ const brightshore = {
   },
   chatUrl: `${baseUrl}/contact`,
   faqUrl: `${baseUrl}/faq`,
-  eStatusLoginUrl:
-    "https://brightshoremortgage.estatusconnect.com/User/Login",
-  eStatusHomeUrl: "https://brightshoremortgage.estatusconnect.com",
+  eStatusLoginUrl: `${eStatusHomeUrl}/User/Login`,
+  eStatusHomeUrl,
   trackingDomains: [
     "ad.doubleclick.net",
     "googleads.g.doubleclick.net",
