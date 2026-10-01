@@ -7,7 +7,7 @@ const brightshore = {
   key: "brightshore",
   appName: "BrightShore Mortgage",
   slug: "brightshore-servicing",
-  version: "1.0",
+  version: "1.0.1",
   iosBundleIdentifier: "com.brightshoremortgage.app",
   androidPackage: "com.brightshoremortgage.app",
   easProjectId: "5e9d4eee-d490-453e-b619-17643137965f",

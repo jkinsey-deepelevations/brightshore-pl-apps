@@ -112,7 +112,7 @@ BrightShore:
 - Android package: `com.brightshoremortgage.app`
 - Expo slug: `brightshore-servicing`
 - Expo/EAS project ID: `5e9d4eee-d490-453e-b619-17643137965f`
-- App version: `1.0`
+- App version: `1.0.1` (live: `1.0`)
 - Current live iOS build: `8`
 - Current live Android version code: `13`
 - Future production increments: managed by EAS remote versioning
